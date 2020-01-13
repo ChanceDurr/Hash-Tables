@@ -32,7 +32,10 @@ class HashTable:
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
+        hash = 5381
+        for c in key:
+            hash = (hash * 33) + ord(c)
+        return hash
 
 
     def _hash_mod(self, key):
@@ -40,19 +43,32 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
-        return self._hash(key) % self.capacity
+        return self._hash_djb2(key) % self.capacity
 
 
     def insert(self, key, value):
         '''
         Store the value with the given key.
 
-        Hash collisions should be handled with Linked List Chaining.
-
-        Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        if self.storage[index] == None:
+            self.storage[index] = LinkedPair(key, value)
+        else:
+            current = self.storage[index]
+            while current != None:
+                if current.key == key:
+                    current.value = value
+                    return
+                if current.next != None:
+                    current = current.next
+                else:
+                    break
+            
+            current.next = LinkedPair(key, value)
 
+
+        
 
 
     def remove(self, key):
@@ -60,10 +76,34 @@ class HashTable:
         Remove the value stored with the given key.
 
         Print a warning if the key is not found.
-
-        Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current =  self.storage[index]
+        
+        if current != None:
+            prev = current
+
+            while current != None: # Loop through linked list
+                if current.key == key: # If key
+                    if current.next != None: # If last in list
+                        if prev != current: # If not only in list
+                            prev.next = current.next
+                            return
+                        else: # If only in list, set index to None
+                            self.storage[index] = None
+                            return
+                    elif prev == current: # if last in list and only in list
+                        self.storage[index] = None
+                        return
+                    else:
+                        prev.next = None
+                        return 
+
+                
+                prev = current
+                current = current.next
+        
+
 
 
     def retrieve(self, key):
@@ -71,20 +111,37 @@ class HashTable:
         Retrieve the value stored with the given key.
 
         Returns None if the key is not found.
-
-        Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current = self.storage[index]
+        if current != None:
+            while current != None:
+                if current.key == key:
+                    return current.value
+                
+                current = current.next
+            
+        return None
+            
 
 
     def resize(self):
         '''
         Doubles the capacity of the hash table and
         rehash all key/value pairs.
-
-        Fill this in.
         '''
-        pass
+        old_capacity = self.capacity
+        self.capacity *= 2
+        old_storage = self.storage
+        self.storage = [None] * self.capacity
+        
+        for i in range(old_capacity):
+            current = old_storage[i]
+            if current != None:
+                while current != None:
+                    self.insert(current.key, current.value)
+                    current = current.next
+
 
 
 
